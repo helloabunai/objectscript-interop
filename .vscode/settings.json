@@ -1,0 +1,7 @@
+{
+    "objectscript.conn": {
+        "server": "ei-dev",
+        "ns": "INTEROP_EXERCISE",
+        "active": true
+    }
+}
