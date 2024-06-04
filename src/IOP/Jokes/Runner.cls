@@ -11,24 +11,29 @@ ClassMethod Run(family As %String = "simpsons", amount As %Integer = 1) As %Stat
 
 	// create an instance of our business service, send request
 	set tSC = ##class(Ens.Director).CreateBusinessService("Jokes.Services.Main", .bService)
-	set response = bService.OnProcessInput(userProcessingRequest)
+	set tSC = bService.OnProcessInput(userProcessingRequest, .pResponse)
 
-	write "Hello from Runner; after response!!", !
-	if (response '= 1){
-		set status = $$$ERROR(response)
+	// check for errors in business service response
+	if (pResponse.FamilyError '= "") || (pResponse.AmountError '= ""){
+		do ##class(IOP.Jokes.Error).CombineErrorEntities(pResponse.FamilyError, pResponse.AmountError, .errorDetails)
+		
+		// TODO this only shows a timestamp if using errorDetails within status
+		// TODO using pResponse.errorHere shows correct info. for one error type.
+		write !!, errorDetails
+		set status = $$$ERROR(83, "IOP.Jokes.Error", errorDetails)
 	}
 
 	#dim statusDetails // md
 	do $system.Status.DecomposeStatus(status, .statusDetails)
 	
 	if ($system.Status.IsOK(status)) {
-		//write response.Joke
-		write ">__ yea response goes here", !
+		zwrite pResponse
+		write pResponse.Joke	
 	} else { // error
-		write ">_ ERROR"
 		if (##class(IOP.Jokes.Error).IsStatusContainsError(status)) {
 			write !,"IOP.Jokes.Error:",!
 			#dim errorStatus = ##class(IOP.Jokes.Error).UnwrapStatusError(status)
+			
 			write ##class(IOP.Jokes.Error).CreateFromStatus(errorStatus).ExportToJson()
 		} else {
 			write !,"Other error:",!

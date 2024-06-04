@@ -1,21 +1,29 @@
 Class IOP.Jokes.Messages.ProcessingResponse Extends Ens.Response
 {
 
-Property Joke As %String(MAXLEN = 200) [ Private ];
+Property Joke As %String(MAXLEN = 200);
 
-Property ParseError As IOP.Jokes.Error;
+Property FamilyError As %String(MAXLEN = 200);
 
-Method %OnNew(inputJoke As %String = "", inputError As IOP.Jokes.Error = "") As %Status
+Property AmountError As %String(MAXLEN = 200);
+
+Method %OnNew(inputJoke As %String = "", inputFamilyError As %String = "", inputAmountError As %String = "") As %Status
 {
     if (inputJoke'="")
     {
         set ..Joke=inputJoke
     }
 
-    if (inputError'="")
+    if (inputFamilyError'="")
     {
-        set ..ParseError=inputError
+        set ..FamilyError=inputFamilyError
     }
+
+    if (inputAmountError'="")
+    {
+        set ..AmountError=inputAmountError
+    }
+
     return $$$OK
 }
 
@@ -27,7 +35,10 @@ Storage Default
 <Value>Joke</Value>
 </Value>
 <Value name="2">
-<Value>ParseError</Value>
+<Value>FamilyError</Value>
+</Value>
+<Value name="3">
+<Value>AmountError</Value>
 </Value>
 </Data>
 <DefaultData>ProcessingResponseDefaultData</DefaultData>

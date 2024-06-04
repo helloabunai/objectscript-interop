@@ -62,6 +62,17 @@ ClassMethod UnwrapStatusError(status As %Status) As %Status [ Final ]
 	return 1
 }
 
+/// Helper function to combine errors for pretty printing
+ClassMethod CombineErrorEntities(inputFamilyError As %String, inputAmountError As %String, Output serialisedError As %String) As %Status [ Final ]
+{
+	set combinedError = ##class(%DynamicObject).%New()
+	set combinedError.FamilyError = inputFamilyError
+	set combinedError.AmountError = inputAmountError
+	set serialisedError = combinedError.%ToJSON()
+
+	return $$$OK
+}
+
 Method DisplayString(pLevel As %Integer = 0) As %String
 {
 	return ..ExportToJson()

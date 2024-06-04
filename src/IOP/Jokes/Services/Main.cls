@@ -6,22 +6,16 @@ Method OnProcessInput(pInput As IOP.Jokes.Messages.ProcessingRequest, Output pOu
 
 	#dim status as %Status = $$$OK
 
-	write "Hello from IOP.Jokes.Services.Main OnProcessInput()", !
+	// send request sync to our process
+	set tPC = ..SendRequestSync("Jokes.Processes.Main", pInput, .pResponse, 10)
 
-	// why don't write commands within OnRequest work when sending SendRequestSync?
-	//set tPC = ..SendRequestSync("Jokes.Processes.Main", pInput, .pResponse, 10)
+	$$$TRACE("(business process responded with: " _ pResponse _ " <<")
 
-	// write commands work via calling an object. use during development i guess
-	set inDev = ##class("IOP.Jokes.Processes.Main").%New()
-	set pResponse = inDev.OnRequest(pInput)
-
-	write "", !!!
-	write "this is after the sendRequestSync", !
-	write "the response was: ", !
-	zwrite pResponse
-
-	if (pResponse '= 1){
+	// if error, set to status, else set to output
+	if ('pResponse){
 		set status = $$$ERROR(pResponse)
+	} else {
+		set pOutput = pResponse
 	}
 
 	return status

@@ -7,40 +7,71 @@ Method OnRequest(pRequest As IOP.Jokes.Messages.ProcessingRequest, Output pRespo
 
 	#dim status as %Status = $$$OK
 
-	write "", !!!!
-	write "hello from processes onRequest()", !
-
 	// validate input using validateFamily() and validateAmount() methods
 	set familyValidStatus = ..validateFamily(pRequest.Family)
 	set amountValidStatus = ..validateAmount(pRequest.Amount)
 
-	if (familyValidStatus '= 1){
-		set familyError = ##class(IOP.Jokes.Error).CreateFromStatus(familyValidStatus)
-		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("", familyError)
-		set status = $$$ERROR(familyError)
+	if ('familyValidStatus){
+		set familyError = ##class(IOP.Jokes.Error).CreateFromStatus(familyValidStatus).ExportToJson()
+		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("", familyError, "")
 	}
-	if (amountValidStatus '= 1){
-		set amountError = ##class(IOP.Jokes.Error).CreateFromStatus(amountValidStatus)
-		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("", amountError)
-		set status = $$$ERROR(amountError)
+	if ('amountValidStatus){
+		set amountError = ##class(IOP.Jokes.Error).CreateFromStatus(amountValidStatus).ExportToJson()
+		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("", "", amountError)
+	}
+	if ('familyValidStatus && 'amountValidStatus)
+	{
+		set familyError = ##class(IOP.Jokes.Error).CreateFromStatus(familyValidStatus).ExportToJson()
+		set amountError = ##class(IOP.Jokes.Error).CreateFromStatus(amountValidStatus).ExportToJson()
+		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("", familyError, amountError)
 	}
 
-	write !!, "ok now here", !!
+	// convert validated processingRequest to OperatingRequest
+	set operatingRequest = ##class(IOP.Jokes.Messages.OperatingRequest).%New(pRequest.Family, pRequest.Amount)
+
+	// send request sync to our operator
+	if (operatingRequest.ValidatedFamily = "simpsons"){
+		//set tPC = ..SendRequestSync("Jokes.Operations.Simpsons", operatingRequest, .opResponse, 10)
+		write "WIP"
+	}
+	if (operatingRequest.ValidatedFamily = "chucknorris"){
+		//set tPC = ..SendRequestSync("Jokes.Operations.ChuckNorris", operatingRequest, .opResponse, 10)
+		write "WIP"
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// success, set response with joke (no error)
+	if (familyValidStatus && amountValidStatus){
+		#dim placeholderJoke = "{jokes:[{family: " _ pRequest.Family _ ", text: This is a placeholder joke. ha ha ha.}]}"
+		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New(placeholderJoke, "", "")
+	}
 	
-
-
-
-
-
-
-
-
-	// convert pRequest to OperatingRequest
-	//set oRequest = ##class(IOP.Jokes.Messages.OperatingRequest).%New(pRequest)
-
-	//set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("This is a joke. Ha ha.")
-
-	return status
+	return $$$OK
 }
 
 Method validateAmount(amount As %Integer) As %Status [ Private ]
@@ -62,6 +93,12 @@ Method validateFamily(family As %String) As %Status [ Private ]
 		#dim error = ##class(IOP.Jokes.Error).Create(details)
 		$$$LOGERROR(error.ExportToJson())
 		return error.ExportToStatus()
+	}
+	if (family = "baconipsum"){
+		#dim baconDetails as %String = "Not implemented yet. Family: "_family
+		#dim baconError = ##class(IOP.Jokes.Error).Create(baconDetails)
+		$$$LOGERROR(baconError.ExportToJson())
+		return baconError.ExportToStatus()
 	}
 	
 	return $$$OK
