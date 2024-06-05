@@ -5,6 +5,15 @@ ClassMethod Run(family As %String = "simpsons", amount As %Integer = 1) As %Stat
 {
 	#dim status as %Status = $$$OK
 
+	// check production so you don't need to manually start it upon laptop reboot
+    if '##class(Ens.Director).IsProductionRunning(.productionStatus) {
+        set sc = ##class(Ens.Director).StartProduction("IOP.Jokes.Production")
+        if $$$ISERR(sc)
+		{
+			set status = $$$ERROR(83, "IOP.Jokes.Error", "Failed to start production.")
+        }
+    }
+
 	// create our request (processingRequest type)
 	set userProcessingRequest = ##class(IOP.Jokes.Messages.ProcessingRequest).%New(family, amount)
     zwrite userProcessingRequest
@@ -18,7 +27,7 @@ ClassMethod Run(family As %String = "simpsons", amount As %Integer = 1) As %Stat
 		do ##class(IOP.Jokes.Error).CombineErrorEntities(pResponse.FamilyError, pResponse.AmountError, .errorDetails)
 		
 		// TODO this only shows a timestamp if using errorDetails within status
-		// TODO using pResponse.errorHere shows correct info. for one error type.
+		// TODO using pResponse.individualErrorHere shows correct info. for one error type.
 		write !!, errorDetails
 		set status = $$$ERROR(83, "IOP.Jokes.Error", errorDetails)
 	}
@@ -27,8 +36,7 @@ ClassMethod Run(family As %String = "simpsons", amount As %Integer = 1) As %Stat
 	do $system.Status.DecomposeStatus(status, .statusDetails)
 	
 	if ($system.Status.IsOK(status)) {
-		zwrite pResponse
-		write pResponse.Joke	
+		write pResponse.Joke
 	} else { // error
 		if (##class(IOP.Jokes.Error).IsStatusContainsError(status)) {
 			write !,"IOP.Jokes.Error:",!

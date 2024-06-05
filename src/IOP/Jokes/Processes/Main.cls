@@ -31,8 +31,14 @@ Method OnRequest(pRequest As IOP.Jokes.Messages.ProcessingRequest, Output pRespo
 
 	// send request sync to our operator
 	if (operatingRequest.ValidatedFamily = "simpsons"){
-		//set tPC = ..SendRequestSync("Jokes.Operations.Simpsons", operatingRequest, .opResponse, 10)
-		write "WIP"
+
+		$$$TRACE("sending request to simpsons, maybe...")
+		set tPC = ..SendRequestSync("Jokes.Operations.Simpsons", operatingRequest, .operationResponse, 10)
+		$$$TRACE("simpsons response: "_ operationResponse)
+
+		zwrite operationResponse
+
+		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("response goes here", "", "")
 	}
 	if (operatingRequest.ValidatedFamily = "chucknorris"){
 		//set tPC = ..SendRequestSync("Jokes.Operations.ChuckNorris", operatingRequest, .opResponse, 10)
@@ -66,6 +72,7 @@ Method OnRequest(pRequest As IOP.Jokes.Messages.ProcessingRequest, Output pRespo
 
 
 	// success, set response with joke (no error)
+	// this is placeholder and will be removed when family endpoints work
 	if (familyValidStatus && amountValidStatus){
 		#dim placeholderJoke = "{jokes:[{family: " _ pRequest.Family _ ", text: This is a placeholder joke. ha ha ha.}]}"
 		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New(placeholderJoke, "", "")
