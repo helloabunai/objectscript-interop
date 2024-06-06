@@ -9,7 +9,7 @@ Method OnProcessInput(pInput As IOP.Jokes.Messages.ProcessingRequest, Output pOu
 	// send request sync to our process
 	set tPC = ..SendRequestSync("Jokes.Processes.Main", pInput, .pResponse, 10)
 
-	$$$TRACE("(business process responded with: " _ pResponse _ " <<")
+	$$$TRACE("(business process responded with: " _ pResponse _ ")")
 
 	// if error, set to status, else set to output
 	if ('pResponse){

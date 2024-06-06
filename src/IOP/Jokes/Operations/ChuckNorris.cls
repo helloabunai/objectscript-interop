@@ -6,6 +6,8 @@ Parameter INVOCATION = "Queue";
 Method GetJoke(request As IOP.Jokes.Messages.OperatingRequest, Output response As IOP.Jokes.Messages.OperatingResponse) As %Status
 {
 	#dim status as %Status = $$$OK
+
+	$$$TRACE("hello from inside chuck norris getJoke")
 	
 	try {
 		// TODO: add your code here

@@ -38,11 +38,16 @@ Method OnRequest(pRequest As IOP.Jokes.Messages.ProcessingRequest, Output pRespo
 
 		zwrite operationResponse
 
-		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("response goes here", "", "")
+		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("formatted response goes here", "", "")
 	}
 	if (operatingRequest.ValidatedFamily = "chucknorris"){
-		//set tPC = ..SendRequestSync("Jokes.Operations.ChuckNorris", operatingRequest, .opResponse, 10)
-		write "WIP"
+		$$$TRACE("sending request to chucknorris, maybe...")
+		set tPC = ..SendRequestSync("Jokes.Operations.ChuckNorris", operatingRequest, .operationResponse, 10)
+		$$$TRACE("chucknorris response: "_ operationResponse)
+
+		zwrite operationResponse
+
+		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("formatted response goes here", "", "")
 	}
 
 
