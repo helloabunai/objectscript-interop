@@ -11,70 +11,50 @@ Method OnRequest(pRequest As IOP.Jokes.Messages.ProcessingRequest, Output pRespo
 	set familyValidStatus = ..validateFamily(pRequest.Family)
 	set amountValidStatus = ..validateAmount(pRequest.Amount)
 
-	if ('familyValidStatus){
-		set familyError = ##class(IOP.Jokes.Error).CreateFromStatus(familyValidStatus).ExportToJson()
-		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("", familyError, "")
-	}
-	if ('amountValidStatus){
-		set amountError = ##class(IOP.Jokes.Error).CreateFromStatus(amountValidStatus).ExportToJson()
-		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("", "", amountError)
-	}
 	if ('familyValidStatus && 'amountValidStatus)
 	{
 		set familyError = ##class(IOP.Jokes.Error).CreateFromStatus(familyValidStatus).ExportToJson()
 		set amountError = ##class(IOP.Jokes.Error).CreateFromStatus(amountValidStatus).ExportToJson()
 		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("", familyError, amountError)
+		return $$$OK
 	}
+	elseif ('familyValidStatus){
+		set familyError = ##class(IOP.Jokes.Error).CreateFromStatus(familyValidStatus).ExportToJson()
+		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("", familyError, "")
+		return $$$OK
+	}
+	elseif ('amountValidStatus){
+		set amountError = ##class(IOP.Jokes.Error).CreateFromStatus(amountValidStatus).ExportToJson()
+		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("", "", amountError)
+		return $$$OK
+	}
+
 
 	// convert validated processingRequest to OperatingRequest
-	set operatingRequest = ##class(IOP.Jokes.Messages.OperatingRequest).%New(pRequest.Family, pRequest.Amount)
+	if (familyValidStatus && amountValidStatus){
+		set operatingRequest = ##class(IOP.Jokes.Messages.OperatingRequest).%New(pRequest.Family, pRequest.Amount)
+	
+		// send request sync to our operator
+		if (operatingRequest.ValidatedFamily = "simpsons"){
 
-	// send request sync to our operator
-	if (operatingRequest.ValidatedFamily = "simpsons"){
+			$$$TRACE("sending request to simpsons, maybe...")
+			set tPC = ..SendRequestSync("Jokes.Operations.Simpsons", operatingRequest, .operationResponse, 10)
+			$$$TRACE("simpsons response: "_ operationResponse)
 
-		$$$TRACE("sending request to simpsons, maybe...")
-		set tPC = ..SendRequestSync("Jokes.Operations.Simpsons", operatingRequest, .operationResponse, 10)
-		$$$TRACE("simpsons response: "_ operationResponse)
+			zwrite operationResponse
 
-		zwrite operationResponse
+			set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("formatted response goes here", "", "")
+		}
+		if (operatingRequest.ValidatedFamily = "chucknorris"){
+			$$$TRACE("sending request to chucknorris, maybe...")
+			set tPC = ..SendRequestSync("Jokes.Operations.ChuckNorris", operatingRequest, .operationResponse, 10)
+			$$$TRACE("chucknorris response: "_ operationResponse)
 
-		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("formatted response goes here", "", "")
+			zwrite operationResponse
+
+			set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("formatted response goes here", "", "")
+		}
 	}
-	if (operatingRequest.ValidatedFamily = "chucknorris"){
-		$$$TRACE("sending request to chucknorris, maybe...")
-		set tPC = ..SendRequestSync("Jokes.Operations.ChuckNorris", operatingRequest, .operationResponse, 10)
-		$$$TRACE("chucknorris response: "_ operationResponse)
-
-		zwrite operationResponse
-
-		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("formatted response goes here", "", "")
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	// success, set response with joke (no error)
 	// this is placeholder and will be removed when family endpoints work
