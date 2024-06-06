@@ -16,7 +16,6 @@ ClassMethod Run(family As %String = "simpsons", amount As %Integer = 1) As %Stat
 
 	// create our request (processingRequest type)
 	set userProcessingRequest = ##class(IOP.Jokes.Messages.ProcessingRequest).%New(family, amount)
-    zwrite userProcessingRequest
 
 	// create an instance of our business service, send request
 	set tSC = ##class(Ens.Director).CreateBusinessService("Jokes.Services.Main", .bService)
@@ -32,7 +31,7 @@ ClassMethod Run(family As %String = "simpsons", amount As %Integer = 1) As %Stat
 	do $system.Status.DecomposeStatus(status, .statusDetails)
 	
 	if ($system.Status.IsOK(status)) {
-		write pResponse.Joke
+		write pResponse.Family _ pResponse.Joke
 	} else { // error
 		if (##class(IOP.Jokes.Error).IsStatusContainsError(status)) {
 			write !,"IOP.Jokes.Error:",!

@@ -29,39 +29,48 @@ Method OnRequest(pRequest As IOP.Jokes.Messages.ProcessingRequest, Output pRespo
 		return $$$OK
 	}
 
-
 	// convert validated processingRequest to OperatingRequest
 	if (familyValidStatus && amountValidStatus){
 		set operatingRequest = ##class(IOP.Jokes.Messages.OperatingRequest).%New(pRequest.Family, pRequest.Amount)
 	
-		// send request sync to our operator
+		// send request sync to our simpsons operator
+		// TODO optimise this to avoid repetition
 		if (operatingRequest.ValidatedFamily = "simpsons"){
 
-			$$$TRACE("sending request to simpsons, maybe...")
+			$$$TRACE("Sending request to simpsons Operator...")
 			set tPC = ..SendRequestSync("Jokes.Operations.Simpsons", operatingRequest, .operationResponse, 10)
-			$$$TRACE("simpsons response: "_ operationResponse)
+			set objectifiedResponse = {}.%FromJSON(operationResponse.TempHTTPDump)
+			set responseJoke = objectifiedResponse.joke.%ToJSON()
+			$$$TRACE("...Simpsons response: "_ objectifiedResponse)
 
-			zwrite operationResponse
-
-			set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("formatted response goes here", "", "")
+			set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("simpsons", responseJoke, "", "")
 		}
+		// send request sync to our chuck norris operator
 		if (operatingRequest.ValidatedFamily = "chucknorris"){
-			$$$TRACE("sending request to chucknorris, maybe...")
+			$$$TRACE("Sending request to chucknorris Operator...")
 			set tPC = ..SendRequestSync("Jokes.Operations.ChuckNorris", operatingRequest, .operationResponse, 10)
-			$$$TRACE("chucknorris response: "_ operationResponse)
+			set objectifiedResponse = {}.%FromJSON(operationResponse.TempHTTPDump)
+			set responseJoke = objectifiedResponse.joke.%ToJSON()
+			$$$TRACE("...Chucknorris operator response: "_ operationResponse)
 
-			zwrite operationResponse
-
-			set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("formatted response goes here", "", "")
+			set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("chucknorris", responseJoke, "", "")
 		}
+		// NOT IMPLEMENTED AS PER SPECS: send request sync to our baconipsum operator
+		#; if (operatingRequest.ValidatedFamily = "baconipsum"){
+		#; 	$$$TRACE("sending request to baconipsum Operator...")
+		#; 	set tPC = ..SendRequestSync("Jokes.Operations.BaconIpsum", operatingRequest, .operationResponse, 10)
+		#; 	$$$TRACE("...Baconipsum response: "_ operationResponse)
+
+		#; 	set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("formatted response goes here", "", "")
+		#; }
 	}
 
 	// success, set response with joke (no error)
 	// this is placeholder and will be removed when family endpoints work
-	if (familyValidStatus && amountValidStatus){
-		#dim placeholderJoke = "{jokes:[{family: " _ pRequest.Family _ ", text: This is a placeholder joke. ha ha ha.}]}"
-		set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New(placeholderJoke, "", "")
-	}
+	#; if (familyValidStatus && amountValidStatus){
+	#; 	#dim placeholderJoke = "{jokes:[{family: " _ pRequest.Family _ ", text: This is a placeholder joke. ha ha ha.}]}"
+	#; 	set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New(placeholderJoke, "", "")
+	#; }
 	
 	return $$$OK
 }
@@ -93,11 +102,6 @@ Method validateFamily(family As %String) As %Status [ Private ]
 		return baconError.ExportToStatus()
 	}
 	
-	return $$$OK
-}
-
-Method %OnNew() As %Status
-{
 	return $$$OK
 }
 

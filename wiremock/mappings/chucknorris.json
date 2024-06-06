@@ -1,0 +1,34 @@
+{
+    "mappings": [
+        {
+            "request": {
+                "method": "GET",
+                "urlPathPattern": "/chucknorris/[123]"
+            },
+            "response": {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "X-Clacks-Overhead": "GNU Terry Pratchett"
+                },
+                "bodyFileName": "chucknorris-{{request.pathSegments.[1]}}.json"
+            }
+        },
+        {
+            "request": {
+                "method": "GET",
+                "urlPathPattern": "/chucknorris/random"
+            },
+            "response": {
+                "status": 200,
+                "bodyFileName": "chucknorris-{{randomInt lower=1 upper=4}}.json",
+                "transformers": ["response-template"],
+                "headers": {
+                    "Content-Type": "application/json",
+                    "X-Clacks-Overhead": "GNU Terry Pratchett"
+                }
+            }
+        }
+        
+    ]
+}
