@@ -31,7 +31,7 @@ ClassMethod Run(family As %String = "simpsons", amount As %Integer = 1) As %Stat
 	do $system.Status.DecomposeStatus(status, .statusDetails)
 	
 	if ($system.Status.IsOK(status)) {
-		write pResponse.Family _ pResponse.Joke
+		write pResponse.Family _": "_ pResponse.Joke
 	} else { // error
 		if (##class(IOP.Jokes.Error).IsStatusContainsError(status)) {
 			write !,"IOP.Jokes.Error:",!

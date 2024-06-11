@@ -39,21 +39,19 @@ Method OnRequest(pRequest As IOP.Jokes.Messages.ProcessingRequest, Output pRespo
 
 			$$$TRACE("Sending request to simpsons Operator...")
 			set tPC = ..SendRequestSync("Jokes.Operations.Simpsons", operatingRequest, .operationResponse, 10)
-			set objectifiedResponse = {}.%FromJSON(operationResponse.TempHTTPDump)
-			set responseJoke = objectifiedResponse.joke.%ToJSON()
+			set objectifiedResponse = operationResponse.ReceivedJokesObject.%ToJSON()
 			$$$TRACE("...Simpsons response: "_ objectifiedResponse)
-
-			set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("simpsons", responseJoke, "", "")
+	
+			set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("simpsons", objectifiedResponse, "", "")
 		}
 		// send request sync to our chuck norris operator
 		if (operatingRequest.ValidatedFamily = "chucknorris"){
 			$$$TRACE("Sending request to chucknorris Operator...")
 			set tPC = ..SendRequestSync("Jokes.Operations.ChuckNorris", operatingRequest, .operationResponse, 10)
-			set objectifiedResponse = {}.%FromJSON(operationResponse.TempHTTPDump)
-			set responseJoke = objectifiedResponse.joke.%ToJSON()
-			$$$TRACE("...Chucknorris operator response: "_ operationResponse)
+			set objectifiedResponse = operationResponse.ReceivedJokesObject.%ToJSON()
+			$$$TRACE("...Chucknorris operator response: "_ objectifiedResponse)
 
-			set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("chucknorris", responseJoke, "", "")
+			set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("chucknorris", objectifiedResponse, "", "")
 		}
 		// NOT IMPLEMENTED AS PER SPECS: send request sync to our baconipsum operator
 		#; if (operatingRequest.ValidatedFamily = "baconipsum"){
@@ -64,21 +62,14 @@ Method OnRequest(pRequest As IOP.Jokes.Messages.ProcessingRequest, Output pRespo
 		#; 	set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New("formatted response goes here", "", "")
 		#; }
 	}
-
-	// success, set response with joke (no error)
-	// this is placeholder and will be removed when family endpoints work
-	#; if (familyValidStatus && amountValidStatus){
-	#; 	#dim placeholderJoke = "{jokes:[{family: " _ pRequest.Family _ ", text: This is a placeholder joke. ha ha ha.}]}"
-	#; 	set pResponse = ##class(IOP.Jokes.Messages.ProcessingResponse).%New(placeholderJoke, "", "")
-	#; }
 	
 	return $$$OK
 }
 
 Method validateAmount(amount As %Integer) As %Status [ Private ]
 {
-	if (amount < 1) {
-		#dim details as %String = "Invalid amount: "_amount_". Valid amount > 0."
+	if (amount < 1) || (amount > 3) {
+		#dim details as %String = "Invalid amount: "_amount_". Valid: 0 < amount <= 3."
 		#dim error = ##class(IOP.Jokes.Error).Create(details)
 		$$$LOGERROR(error.ExportToJson())
 		return error.ExportToStatus()

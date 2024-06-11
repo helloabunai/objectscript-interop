@@ -3,7 +3,7 @@ Class IOP.Jokes.Messages.ProcessingResponse Extends Ens.Response
 
 Property Family As %String(MAXLEN = 200);
 
-Property Joke As %String(MAXLEN = 200);
+Property Joke As %String(MAXLEN = 1000);
 
 Property FamilyError As %String(MAXLEN = 200);
 
